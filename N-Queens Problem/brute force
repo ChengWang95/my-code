@@ -1,0 +1,78 @@
+/*
+*暴力破解N皇后问题。
+*思路：
+*1.先求出棋子的全排列；
+*2.在对每种全排列验证是否满足N皇后条件。
+*
+*对于第一点：
+*首先需要考虑到，每行每列只能出现一个棋子，所以对边长为N的棋盘，之多能放N个皇后，通过一个vector<int> 来保存可能的放法，用下标表示行数，下标对应的值表示列数，简化位置的表达方式；
+*这样，就需要考虑N个数的全排列问题，使用动态规划的方法迭代求解。
+*
+*对于第二点，通过在struct类中重载==、！=操作符，实现两个棋子的比较；再使用两层循环，两两比较，如果出现棋子区域交叉，则该排列不满足条件。
+*/
+
+#include <iostream>
+#include <vector>
+using namespace std;
+vector<int> arr;
+vector<vector<int>> ans;
+int length = 8;     //棋盘格数，即N
+struct Queen {      //定义Queen类
+	int x, y;
+	Queen(int xx = 0, int yy = 0) :x(xx), y(yy) {};
+	bool operator==(Queen const& q) const {         //重载操作符，比较两个皇后是否可以直接攻击对方
+		return (x == q.x) || (y == q.y) || (y - x == q.y - q.x) || (x + y == q.x + q.y);
+	}
+	bool operator!=(Queen const& q) const {
+		return !(*this == q);
+	}
+};
+
+void swap(int x, int y) {
+	int temp = arr[x];
+	arr[x] = arr[y];
+	arr[y] = temp;
+}
+
+int resort(int n) {       //全排列迭代求解，n表示第n个位置
+	if (n == length) {
+		ans.push_back(arr);       //将可能的排列存入ans中
+		return 0;
+	}
+	for (int i = n; i < length; ++i) {
+		swap(i, n);
+		resort(n + 1);
+		swap(i, n);
+	}
+}
+
+bool isRepeat(vector<int> arr) {    //比较两个皇后是否可以直接攻击对方，是返回true
+	for (int i = 0; i < length; ++i) {
+		Queen queen1(i, arr[i]);
+		for (int j = i+1; j < length; ++j) {
+			Queen queen2(j, arr[j]);
+			if (queen1 == queen2) return true;
+		}
+	}
+	return false;
+}
+
+int calQueen() {          //对所有排列进行计算，输出可行解
+	for (auto &arr : ans) {
+		if (!isRepeat(arr)) {
+			for (auto &i : arr)  cout << i << ' ';
+			cout << endl;
+		}
+	}
+	return 0;
+}
+
+int main() {
+	for (int i = 0; i < length; ++i) {
+		arr.push_back(i);       //初始化
+	}
+	resort(0);
+	calQueen();
+	system("pause");
+	return 0;
+}
